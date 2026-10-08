@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-only
+"""Test-only interpreter shim: report west unavailable to CMake discovery.
+
+All other calls use installed Python unchanged. This isolates the discovery
+branch; it is not proof of a pristine distro or a substitute production tool.
+"""
+import os
+import sys
+
+if len(sys.argv) >= 3 and sys.argv[1] == "-c" and "import west.version;" in sys.argv[2]:
+    raise SystemExit(1)
+os.execv(sys.executable, [sys.executable, *sys.argv[1:]])

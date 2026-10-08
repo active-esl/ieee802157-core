@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: GPL-3.0-only
+menuconfig LIGHT_COMMS
+	bool "Portable light communications core"
+	help
+	  Allocation-free experimental GPL-3.0-only protocol core. No physical
+	  LED or camera driver is selected. The application supplies adapters.
+	  Review GPL linking/distribution obligations before product adoption.
+
+if LIGHT_COMMS
+
+config LIGHT_COMMS_PLAYER
+	bool "Bounded waveform player"
+	default y
+
+config LIGHT_COMMS_RECEIVER
+	bool "Recovered binary-symbol receiver"
+	default y
+
+config LIGHT_COMMS_IMAGE
+	bool "Grayscale image classifier"
+	default y
+
+config LIGHT_COMMS_SPATIAL
+	bool "Spatial symbol grouping and image sampling"
+	depends on LIGHT_COMMS_IMAGE
+	default y
+
+config LIGHT_COMMS_COOK
+	bool "C-OOK fragment codec and assembler"
+	default y
+
+config LIGHT_COMMS_ROLLING
+	bool "Rolling-shutter image adapter"
+	depends on LIGHT_COMMS_IMAGE && LIGHT_COMMS_COOK
+	default y
+
+config LIGHT_COMMS_SLOW_COLOUR
+	bool "Custom slow-colour codec and classifier"
+	default y
+
+endif

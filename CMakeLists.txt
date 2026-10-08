@@ -4,10 +4,16 @@ project(light_comms_core VERSION 0.1.0
   DESCRIPTION "Portable experimental optical camera communications core"
   HOMEPAGE_URL "https://github.com/active-esl/light-comms-core" LANGUAGES C)
 option(OCC_ENABLE_SANITIZERS "Enable AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
+option(OCC_BUILD_EXAMPLES "Build hardware-free Linux command-line tools" ON)
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 include(CTest)
 add_library(occ STATIC src/occ.c src/packet.c src/receiver.c src/image.c src/player.c src/spatial.c)
 target_sources(occ PRIVATE src/cook.c src/rolling.c src/colour.c)
-target_include_directories(occ PUBLIC include)
+target_include_directories(occ PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+add_library(light_comms::occ ALIAS occ)
 target_compile_features(occ PUBLIC c_std_99)
 set_target_properties(occ PROPERTIES C_EXTENSIONS OFF)
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
@@ -47,6 +53,7 @@ if(BUILD_TESTING)
   set_tests_properties(colour PROPERTIES TIMEOUT 30)
   set_tests_properties(core receiver image player spatial cook hardening PROPERTIES TIMEOUT 30)
 endif()
+if(OCC_BUILD_EXAMPLES)
 add_executable(occ_wave_csv examples/linux/wave_csv.c)
 target_link_libraries(occ_wave_csv PRIVATE occ)
 add_executable(occ_fixture_json examples/linux/fixture_json.c)
@@ -83,4 +90,28 @@ if(BUILD_TESTING)
     set_tests_properties(colour_fixture PROPERTIES TIMEOUT 30
       ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1")
   endif()
+endif()
+endif() # OCC_BUILD_EXAMPLES
+
+install(TARGETS occ EXPORT light_comms_coreTargets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(DIRECTORY include/occ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES COPYING DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/light-comms-core)
+set(OCC_PACKAGE_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/light_comms_core)
+configure_package_config_file(cmake/light_comms_coreConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/light_comms_coreConfig.cmake
+  INSTALL_DESTINATION ${OCC_PACKAGE_DIR})
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/light_comms_coreConfigVersion.cmake
+  VERSION ${PROJECT_VERSION} COMPATIBILITY SameMajorVersion)
+install(EXPORT light_comms_coreTargets NAMESPACE light_comms::
+  DESTINATION ${OCC_PACKAGE_DIR})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/light_comms_coreConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/light_comms_coreConfigVersion.cmake
+  DESTINATION ${OCC_PACKAGE_DIR})
+if(OCC_BUILD_EXAMPLES)
+  install(TARGETS occ_wave_csv occ_fixture_json occ_decode_gray
+    occ_decode_colour_fixture occ_decode_spatial occ_fixture_cook
+    occ_decode_rows occ_measure occ_status_stream
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()

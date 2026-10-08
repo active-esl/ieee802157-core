@@ -82,4 +82,32 @@ streaming/arbitrary-rate acquisition, fitted LED current/timing or DPX capture.
 The Zephyr marker validates virtual encoder/receiver execution, not hardware
 scheduling. Native tests additionally reject malformed numeric input, timestamp
 overflow, embedded NULs and overlong fixture records. A local test pass does not
-establish that this unpublished candidate passed hosted CI.
+establish that the candidate passed hosted CI.
+
+## Configurable component and packaging checks
+
+Native CI also exercises an installed CMake package consumer and an examples-off
+library-only build. Zephyr CI tests module disabled and slow-colour/player-only
+selection, including generated Ninja source rules. The recipe/layer consistency
+check is explicitly static, not BitBake parsing/build/package QA evidence.
+See [integration](INTEGRATION.md) for consumption and remaining proof.
+
+Published dc31e3a Zephyr run37821102439 reached esl-proxmox-runner and failed
+configuration because Kconfig/kconfig_module_dirs.cmake was absent. In the minimal
+environment, west was unavailable and `ZEPHYR_MODULES` was empty; Zephyr4.4's
+module-generation branch requires west or a non-empty explicit module list.
+The installed local workspace had west, masking this difference. The correction
+passes this checkout explicitly as `ZEPHYR_MODULES`, avoiding an extra dependency
+and excluding unrelated workspace modules. No upstream/runner controls changed.
+Tests must exercise that no-west discovery branch as well as normal simulation;
+a local pass is not a green corrected hosted run.
+
+Local packaging validation on8October2026 passed10/10 tests in GCC Debug,
+Release and ASan/UBSan builds, a separate installed-package consumer and an
+examples-off/test-off library-only build. Full/disabled/slow-colour-only Zephyr
+simulations passed, and generated Ninja rules contained only the selected
+sources. `tests/python_no_west` is a test-only interpreter shim that reports
+west unavailable to CMake while delegating other calls to installed Python.
+With it, empty-module configuration reproduced the absent-file failure;
+explicit-module configuration generated the file and ran both smoke markers
+with WEST-NOTFOUND. This isolates the discovery branch, not a pristine OS proof.

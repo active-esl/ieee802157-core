@@ -40,7 +40,7 @@ jobs:
           export ZEPHYR_BASE="$PWD/build-deps/zephyr"
           cmake -S examples/zephyr -B build-zephyr-native -G Ninja \
             -DBOARD=native_sim/native/64 -DZEPHYR_BASE="$PWD/build-deps/zephyr" \
-            -DZEPHYR_TOOLCHAIN_VARIANT=host -DZEPHYR_MODULES= \
+            -DZEPHYR_TOOLCHAIN_VARIANT=host -DZEPHYR_MODULES="$PWD" \
             -DUSER_CACHE_DIR="$PWD/build-zephyr-native/cache" -DUSE_CCACHE=0
           timeout 180s cmake --build build-zephyr-native --parallel 2
       - name: Run bounded native simulation
@@ -49,3 +49,20 @@ jobs:
           timeout 10s build-zephyr-native/zephyr/zephyr.exe -stop_at=0.1 | tee build-zephyr-native/smoke.log
           grep -F 'OCC_ZEPHYR_PASS' build-zephyr-native/smoke.log
           grep -F 'OCC_ZEPHYR_COLOUR_PASS symbols=110 virtual_ns=13750000000' build-zephyr-native/smoke.log
+      - name: Verify disabled and slow-colour-only module
+        run: |
+          export PATH="$PWD/build-deps/venv/bin:$PATH"
+          export ZEPHYR_BASE="$PWD/build-deps/zephyr"
+          for selection in disabled subset; do
+            extra=()
+            if [ "$selection" = subset ]; then extra=(-DEXTRA_CONF_FILE=slow_colour.conf); fi
+            cmake -S tests/zephyr_component -B "build-zephyr-$selection" -G Ninja \
+              -DBOARD=native_sim/native/64 -DZEPHYR_BASE="$ZEPHYR_BASE" \
+              -DZEPHYR_TOOLCHAIN_VARIANT=host -DZEPHYR_MODULES="$PWD" \
+              -DUSER_CACHE_DIR="$PWD/build-zephyr-$selection/cache" -DUSE_CCACHE=0 "${extra[@]}"
+            timeout 60s cmake --build "build-zephyr-$selection" --parallel 2
+            timeout 10s "build-zephyr-$selection/zephyr/zephyr.exe" -stop_at=0.1 | tee "build-zephyr-$selection/smoke.log"
+          done
+          grep -F LIGHT_COMMS_DISABLED_PASS build-zephyr-disabled/smoke.log
+          grep -F LIGHT_COMMS_SUBSET_PASS build-zephyr-subset/smoke.log
+          python3 tests/check_zephyr_selection.py build-zephyr-disabled build-zephyr-subset

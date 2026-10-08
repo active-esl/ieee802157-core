@@ -121,7 +121,11 @@ grayscale frames from standard input and explicit monotonic timestamps from a
 file. Camera ownership, controls, timestamps and ROI tracking are outside it.
 
 Zephyr can consume this as an extra module through its normal
-`ZEPHYR_EXTRA_MODULES` mechanism. No existing F1 workspace is modified.
+`ZEPHYR_EXTRA_MODULES` or west mechanism. Enable `CONFIG_LIGHT_COMMS=y` and
+select only required source groups. It is disabled by default.
+See [integration instructions](docs/INTEGRATION.md) for Kconfig, CMake install/
+package consumption and the pinned-source Yocto recipe/layer. No existing F1
+workspace is modified; the recipe has not yet been validated with BitBake.
 The [Zephyr sample](examples/zephyr/src/main.c) uses only simulated LED
 capabilities and recovered-symbol input; it does not actuate hardware.
 
@@ -130,7 +134,7 @@ An installed Zephyr4.4.0 tree and host compiler were tested with:
 ```sh
 export ZEPHYR_BASE=/path/to/installed/zephyr
 cmake -S examples/zephyr -B build-zephyr-native -G Ninja \
-  -DBOARD=native_sim/native/64 -DZEPHYR_BASE="$ZEPHYR_BASE" -DZEPHYR_MODULES= \
+  -DBOARD=native_sim/native/64 -DZEPHYR_BASE="$ZEPHYR_BASE" -DZEPHYR_MODULES="$PWD" \
   -DZEPHYR_TOOLCHAIN_VARIANT=host \
   -DUSER_CACHE_DIR="$PWD/build-zephyr-native/cache" -DUSE_CCACHE=0
 cmake --build build-zephyr-native --parallel 2

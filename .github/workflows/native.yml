@@ -49,3 +49,15 @@ jobs:
         run: timeout 180s cmake --build build --parallel 2
       - name: Test
         run: timeout 60s ctest --test-dir build --output-on-failure
+      - name: Verify installed package and library-only build
+        if: matrix.compiler == 'gcc' && matrix.build_type == 'Debug' && matrix.sanitizers == 'OFF'
+        run: |
+          cmake --install build --prefix "$PWD/build-prefix"
+          cmake -S tests/package_consumer -B build-consumer -G Ninja -DCMAKE_PREFIX_PATH="$PWD/build-prefix"
+          timeout 60s cmake --build build-consumer --parallel 2
+          build-consumer/package_consumer
+          cmake -S . -B build-library-only -G Ninja -DOCC_BUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF
+          timeout 60s cmake --build build-library-only --parallel 2
+          test -f build-library-only/libocc.a
+          test ! -e build-library-only/occ_status_stream
+          python3 tests/check_yocto_metadata.py
