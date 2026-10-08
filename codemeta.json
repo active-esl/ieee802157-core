@@ -1,0 +1,15 @@
+{
+  "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+  "@type": "SoftwareSourceCode",
+  "name": "ieee802157-core",
+  "description": "Portable experimental standard-derived optical camera communications profiles for Linux and Zephyr; no IEEE conformance claim.",
+  "codeRepository": "https://github.com/active-esl/ieee802157-core",
+  "url": "https://github.com/active-esl/ieee802157-core",
+  "license": "https://spdx.org/licenses/GPL-3.0-only.html",
+  "version": "0.1.0",
+  "developmentStatus": "experimental",
+  "programmingLanguage": "C99",
+  "runtimePlatform": ["Linux", "Zephyr"],
+  "keywords": ["optical-camera-communication", "visible-light-communication", "ufsook", "s2-psk", "c-ook", "zephyr"],
+  "author": [{"@type": "Organization", "name": "AESL", "url": "https://github.com/active-esl"}]
+}

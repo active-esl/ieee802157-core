@@ -1,0 +1,46 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: Synthetic video tests
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  video:
+    if: github.repository == 'active-esl/ieee802157-core'
+    runs-on: [self-hosted, Linux, X64, aesl, esl-proxmox]
+    container: ubuntu:24.04
+    defaults:
+      run:
+        shell: bash
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - profile: ufsook
+            script: tests/synthetic_video.py
+          - profile: s2psk
+            script: tests/synthetic_spatial_video.py
+          - profile: cook
+            script: tests/synthetic_rolling_video.py
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONOPTIMIZE: '0'
+      TEST_SCRIPT: ${{ matrix.script }}
+      OUTPUT_PATH: .test-output/ci-${{ matrix.profile }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Install runner fixture tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends gcc cmake ninja-build python3 python3-numpy ffmpeg git ca-certificates
+      - name: Build adapters
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          timeout 180s cmake --build build --parallel 2
+      - name: Test analytic exposure and lossless video decoding
+        run: timeout 180s python3 "$TEST_SCRIPT" --build build --output "$OUTPUT_PATH"

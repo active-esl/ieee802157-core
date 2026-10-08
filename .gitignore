@@ -1,0 +1,11 @@
+/build*/
+.test-output/
+evidence/
+__pycache__/
+*.pyc
+# Local integration/authority context is not part of the public source package.
+docs/INTEGRATION-READINESS.md
+/config/publication-proposals/
+.venv*/
+.env
+.env.*

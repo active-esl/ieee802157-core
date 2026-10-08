@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: Zephyr native simulation
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  zephyr:
+    if: github.repository == 'active-esl/ieee802157-core'
+    runs-on: [self-hosted, Linux, X64, aesl, esl-proxmox]
+    container: ubuntu:24.04
+    defaults:
+      run:
+        shell: bash
+    timeout-minutes: 5
+    env:
+      ZEPHYR_REVISION: 684c9e8f32e4373a21098559f748f06915f950c9
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Install runner native-simulation tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends gcc g++ make cmake ninja-build python3 python3-venv git device-tree-compiler ca-certificates
+      - name: Fetch pinned Zephyr 4.4.0
+        run: |
+          git init build-deps/zephyr
+          git -C build-deps/zephyr remote add origin https://github.com/zephyrproject-rtos/zephyr.git
+          timeout 180s git -C build-deps/zephyr fetch --depth 1 origin "$ZEPHYR_REVISION"
+          git -C build-deps/zephyr checkout --detach FETCH_HEAD
+          test "$(git -C build-deps/zephyr rev-parse HEAD)" = "$ZEPHYR_REVISION"
+          python3 -m venv build-deps/venv
+          timeout 180s build-deps/venv/bin/pip install -r build-deps/zephyr/scripts/requirements-base.txt
+      - name: Configure and build without hardware drivers
+        run: |
+          export PATH="$PWD/build-deps/venv/bin:$PATH"
+          cmake -S examples/zephyr -B build-zephyr-native -G Ninja \
+            -DBOARD=native_sim/native/64 -DZEPHYR_BASE="$PWD/build-deps/zephyr" \
+            -DZEPHYR_TOOLCHAIN_VARIANT=host -DZEPHYR_MODULES= \
+            -DUSER_CACHE_DIR="$PWD/build-zephyr-native/cache" -DUSE_CCACHE=0
+          timeout 180s cmake --build build-zephyr-native --parallel 2
+      - name: Run bounded native simulation
+        run: |
+          set -o pipefail
+          timeout 10s build-zephyr-native/zephyr/zephyr.exe -stop_at=0.1 | tee build-zephyr-native/smoke.log
+          grep -F 'OCC_ZEPHYR_PASS' build-zephyr-native/smoke.log
