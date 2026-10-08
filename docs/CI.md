@@ -55,3 +55,19 @@ external workspace modules disabled also reports OCC_ZEPHYR_PASS, verifying
 that the sample only needs the pinned base tree and this extra module.
 Clang and hosted job execution have not been
 run during this preparation. Full-schema/actionlint validation is not claimed.
+
+## Initial ESL-runner evidence and setup corrections
+
+Initial commit a162622 ran on esl-proxmox-runner. Five native matrix jobs passed;
+Clang's sanitizer job failed linking because its runtime archives were absent.
+All three synthetic jobs failed the C compiler smoke test because Scrt1.o/crti.o
+were absent. Zephyr failed package discovery because the sample reads the
+ZEPHYR_BASE environment hint, not just the cache variable supplied by CI.
+
+The correction installs build-essential (including libc development/startup
+files), installs libclang-rt-18-dev alongside Ubuntu24.04's Clang18, and exports
+ZEPHYR_BASE before configuring the Zephyr sample. Dependency installation now
+precedes checkout so Git/certificates are available and checkout can perform
+its normal workspace handling on the persistent runner. All package changes
+remain inside the job container; host dependencies/permissions are unchanged.
+These diagnosed corrections are not proof of a successful corrected run.

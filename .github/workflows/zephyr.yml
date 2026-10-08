@@ -18,13 +18,13 @@ jobs:
       ZEPHYR_REVISION: 684c9e8f32e4373a21098559f748f06915f950c9
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
-        with:
-          persist-credentials: false
       - name: Install runner native-simulation tools
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends gcc g++ make cmake ninja-build python3 python3-venv git device-tree-compiler ca-certificates
+          apt-get install -y --no-install-recommends build-essential cmake ninja-build python3 python3-venv git device-tree-compiler ca-certificates
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
       - name: Fetch pinned Zephyr 4.4.0
         run: |
           git init build-deps/zephyr
@@ -37,6 +37,7 @@ jobs:
       - name: Configure and build without hardware drivers
         run: |
           export PATH="$PWD/build-deps/venv/bin:$PATH"
+          export ZEPHYR_BASE="$PWD/build-deps/zephyr"
           cmake -S examples/zephyr -B build-zephyr-native -G Ninja \
             -DBOARD=native_sim/native/64 -DZEPHYR_BASE="$PWD/build-deps/zephyr" \
             -DZEPHYR_TOOLCHAIN_VARIANT=host -DZEPHYR_MODULES= \

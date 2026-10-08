@@ -33,13 +33,13 @@ jobs:
       PYTHONDONTWRITEBYTECODE: '1'
       PYTHONOPTIMIZE: '0'
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
-        with:
-          persist-credentials: false
       - name: Install runner build tools
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends gcc clang cmake ninja-build python3 git ca-certificates
+          apt-get install -y --no-install-recommends build-essential clang libclang-rt-18-dev cmake ninja-build python3 git ca-certificates
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
       - name: Configure
         run: >-
           cmake -S . -B build -G Ninja
