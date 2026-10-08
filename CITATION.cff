@@ -2,17 +2,18 @@
 cff-version: 1.2.0
 message: "If you use this experimental implementation, cite the software and identify the tested profile."
 type: software
-title: "IEEE 802.15.7 portable optical communications core"
+title: "Portable light communications core"
 authors:
   - name: "AESL"
 version: 0.1.0
 license: GPL-3.0-only
-repository-code: "https://github.com/active-esl/ieee802157-core"
-url: "https://github.com/active-esl/ieee802157-core"
+repository-code: "https://github.com/active-esl/light-comms-core"
+url: "https://github.com/active-esl/light-comms-core"
 abstract: >-
   Allocation-free C99 experimental optical camera communications core with
-  standard-derived UFSOOK, S2-PSK and C-OOK profiles, Linux offline adapters
-  and Zephyr native simulation. Not an IEEE conformance or production claim.
+  IEEE-derived UFSOOK, S2-PSK and C-OOK experiments plus custom slow-colour
+  signalling, Linux offline adapters and Zephyr native simulation. Broader
+  light communications research, not an IEEE conformance or production claim.
 keywords:
   - optical-camera-communication
   - visible-light-communication

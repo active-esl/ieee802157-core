@@ -1,18 +1,23 @@
-# IEEE 802.15.7 portable optical communications core
+# Portable light communications core
 
-[![Native build and tests](https://github.com/active-esl/ieee802157-core/actions/workflows/native.yml/badge.svg)](https://github.com/active-esl/ieee802157-core/actions/workflows/native.yml)
-[![Synthetic video tests](https://github.com/active-esl/ieee802157-core/actions/workflows/synthetic.yml/badge.svg)](https://github.com/active-esl/ieee802157-core/actions/workflows/synthetic.yml)
-[![Zephyr native simulation](https://github.com/active-esl/ieee802157-core/actions/workflows/zephyr.yml/badge.svg)](https://github.com/active-esl/ieee802157-core/actions/workflows/zephyr.yml)
+[![Native build and tests](https://github.com/active-esl/light-comms-core/actions/workflows/native.yml/badge.svg)](https://github.com/active-esl/light-comms-core/actions/workflows/native.yml)
+[![Synthetic video tests](https://github.com/active-esl/light-comms-core/actions/workflows/synthetic.yml/badge.svg)](https://github.com/active-esl/light-comms-core/actions/workflows/synthetic.yml)
+[![Zephyr native simulation](https://github.com/active-esl/light-comms-core/actions/workflows/zephyr.yml/badge.svg)](https://github.com/active-esl/light-comms-core/actions/workflows/zephyr.yml)
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](COPYING)
 [![C99](https://img.shields.io/badge/language-C99-blue.svg)](include/occ/occ.h)
 [![Development: experimental](https://img.shields.io/badge/status-experimental-orange.svg)](docs/PROFILES.md)
 
-GPL-3.0-only development library for LED-to-camera experiments on Linux and
-Zephyr, maintained for AESL. Intended public repository:
-[`active-esl/ieee802157-core`](https://github.com/active-esl/ieee802157-core).
-Not a production stack or an IEEE-conformant implementation. Until publication
-and the first hosted runs, workflow badges may show unavailable/no status;
-they are not substitutes for the local evidence below.
+GPL-3.0-only development library for light communications and LED-to-camera
+telemetry experiments on Linux and Zephyr, maintained for AESL. It includes
+selected IEEE 802.15.7-derived modulation experiments and a custom slow-colour
+profile; the library is not limited to implementing that standard.
+Public repository:
+[`active-esl/light-comms-core`](https://github.com/active-esl/light-comms-core),
+renamed from `ieee802157-core` without replacing its history. Stable `occ` APIs
+and the existing Zephyr build-library identifier remain compatible.
+Not a production stack or an IEEE-conformant implementation. Workflow badges
+describe hosted repository runs, not unpublished local changes, hardware proof
+or standard conformance.
 
 ## Boundary
 
@@ -50,20 +55,32 @@ Implemented initial primitives:
   eight lossless synthetic two-source video cases pass.
 - Portable calibrated rolling-shutter C-OOK row reconstruction, checked short
   fragments and envelope assembly; eight synthetic rolling-source videos pass.
+- Custom slow-colour encoder, RGB classifier and framed receiver for one LED
+  package with four distinguishable colours:125ms symbols,13.75s/envelope.
+  Fifteen synthetic video cases pass with configured-period offline phase
+  acquisition, without a supplied optical epoch. Live capture and arbitrary-rate
+  clock recovery are unproved. This profile is not IEEE CSK or UFSOOK.
 
-Eight suites (seven native plus the optional Python status-handoff fixture)
+Ten suites (eight native plus two optional Python adapter fixtures)
 pass in Debug, Release and ASan/UBSan builds, including
 100000 deterministic malformed-input iterations. Host resource measurements and
 RGB/integration assessment are documented in [test evidence](docs/TESTING.md)
 and [RGB fit](docs/RGB-AND-INTEGRATION.md).
-Blind optical-clock acquisition is not claimed by these calibrated profiles
+Arbitrary-rate optical-clock acquisition is not claimed by these profiles
 and remains a documented deployment limitation.
 Synthetic tests are not real-camera proof. C-OOK partial-sub-packet fusion
 remains unimplemented.
 See the [architecture recommendation and next test gates](docs/RECOMMENDATION.md).
+The [local readiness checkpoint](docs/LOCAL-READINESS.md) separates measured
+fixture results from the unproved hardware and camera requirements.
 The next hardware milestone has a [public integration assessment](docs/HARDWARE-INTEGRATION.md):
 the current manual LP5811 API cannot emit the selected carriers at its configured
 bus rate; an independently proved waveform path is required before deployment.
+For the initial fitted LED, the selected local experiment is the
+[custom slow-colour profile](docs/COLOUR-PROFILE.md), not an auxiliary emitter.
+It reduces switching rate but does not establish safe current, physical timing
+or independent camera acquisition. Human fallback and critical-task isolation
+remain integration gates.
 The [finite Linux status handoff](docs/LINUX-STATUS-HANDOFF.md) emits explicit
 valid/stale/uncertain/no-signal NDJSON from validated envelopes and host events;
 it does not itself capture a camera or bind Briar.
@@ -96,6 +113,7 @@ per meaningful attempt, no camera access):
 python3 tests/synthetic_video.py --build build --output .test-output/ufsook-01
 python3 tests/synthetic_spatial_video.py --build build --output .test-output/s2psk-01
 python3 tests/synthetic_rolling_video.py --build build --output .test-output/cook-03
+python3 tests/synthetic_colour_video.py --build build --output .test-output/colour-new
 ```
 
 See [test evidence and limits](docs/TESTING.md). The Linux adapter reads raw
@@ -110,15 +128,16 @@ capabilities and recovered-symbol input; it does not actuate hardware.
 An installed Zephyr4.4.0 tree and host compiler were tested with:
 
 ```sh
+export ZEPHYR_BASE=/path/to/installed/zephyr
 cmake -S examples/zephyr -B build-zephyr-native -G Ninja \
-  -DBOARD=native_sim/native/64 -DZEPHYR_BASE=/path/to/installed/zephyr \
+  -DBOARD=native_sim/native/64 -DZEPHYR_BASE="$ZEPHYR_BASE" -DZEPHYR_MODULES= \
   -DZEPHYR_TOOLCHAIN_VARIANT=host \
   -DUSER_CACHE_DIR="$PWD/build-zephyr-native/cache" -DUSE_CCACHE=0
 cmake --build build-zephyr-native --parallel 2
 build-zephyr-native/zephyr/zephyr.exe -stop_at=0.1
 ```
 
-Expected output includes `OCC_ZEPHYR_PASS`. Host simulation is not MCXW236
+Expected output includes `OCC_ZEPHYR_PASS` and `OCC_ZEPHYR_COLOUR_PASS`. Host simulation is not MCXW236
 firmware, pressure/CAN isolation, or LP5811 timing/electrical proof.
 
 ## Standards and rights

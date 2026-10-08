@@ -4,9 +4,9 @@ Three GitHub Actions workflows are prepared for the public active-esl repository
 
 | Workflow | Coverage |
 |---|---|
-| native.yml | GCC/Clang Debug and Release, plus both compiler sanitizer builds; seven native suites and installed-Python status handoff |
-| synthetic.yml | Separate UFSOOK13, S2-PSK8 and C-OOK8 analytic exposure/FFV1/decoder case sets |
-| zephyr.yml | Pinned Zephyr4.4.0 host native_sim build and finite0.1s simulation requiring OCC_ZEPHYR_PASS |
+| native.yml | GCC/Clang Debug and Release, plus both compiler sanitizer builds; eight native suites and two installed-Python adapter fixtures |
+| synthetic.yml | Separate UFSOOK13, S2-PSK8, C-OOK8 and custom slow-colour15 analytic exposure/FFV1/decoder case sets |
+| zephyr.yml | Pinned Zephyr4.4.0 host native_sim build and finite0.1s simulation requiring OCC_ZEPHYR_PASS and OCC_ZEPHYR_COLOUR_PASS |
 
 All target [self-hosted, Linux, X64, aesl, esl-proxmox], the AESL Proxmox runner,
 with an ubuntu:24.04 job container, read-only contents permission, no persisted
@@ -71,3 +71,15 @@ precedes checkout so Git/certificates are available and checkout can perform
 its normal workspace handling on the persistent runner. All package changes
 remain inside the job container; host dependencies/permissions are unchanged.
 These diagnosed corrections are not proof of a successful corrected run.
+
+## Slow-colour candidate coverage
+
+The local candidate adds custom slow-colour regression without changing runner,
+trigger, permissions, isolation or serialization controls. Its fifteen video
+cases use synthetic calibration and a fixed ROI; configured-period offline
+phase acquisition does not receive the optical epoch. They do not prove live
+streaming/arbitrary-rate acquisition, fitted LED current/timing or DPX capture.
+The Zephyr marker validates virtual encoder/receiver execution, not hardware
+scheduling. Native tests additionally reject malformed numeric input, timestamp
+overflow, embedded NULs and overlong fixture records. A local test pass does not
+establish that this unpublished candidate passed hosted CI.

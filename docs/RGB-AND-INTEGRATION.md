@@ -26,7 +26,8 @@ from coordinated as-built bring-up before any independently authorized actuation
 
 | Use | Fit for confirmed RGB package | Remaining proof |
 |---|---|---|
-| One selected colour carrying UFSOOK | Natural baseline; brightness rather than hue conveys data | Visible channel, safe current, switch-rate/jitter and camera exposure |
+| Four calibrated colours on the existing LED package | Selected custom slow-colour experiment, not IEEE CSK | Safe held-symbol current/duty, full-API transition latency, colour calibration and blind camera acquisition |
+| One selected colour carrying UFSOOK | Retained IEEE-derived research candidate; current manual API is too slow | A separately selected/proved waveform path; not an auxiliary-emitter plan for this initial board |
 | Same temporal message on colours in separate runs | Compare contrast and support redundant observation | White balance, spectral sensitivity, cross-talk and exposure saturation |
 | Human-readable colour status with temporal fallback | Useful alongside a diagnostic envelope | Approved state meanings and no conflict with telemetry scheduling |
 | Spatial S2-PSK using RGB dies | Not assumed suitable; dies may be optically co-located/unresolvable | Two independently visible disjoint image regions, or separate LED sources |
@@ -36,8 +37,11 @@ from coordinated as-built bring-up before any independently authorized actuation
 No colour message authenticates board identity. RGB capability does not grant
 operation authority or prove that a colour coding profile is robust. Colour
 channels can saturate or be altered by auto white balance and ambient sources.
-The library's current grayscale adapters deliberately do not claim colour
-demodulation. Colour-coded IEEE profiles are alternatives, not silently replaced
+The grayscale adapters do not claim colour demodulation. The separate custom
+RGB classifier and synthetic fixture are described in COLOUR-PROFILE.md;
+their configured-period offline phase search is not live/arbitrary-rate clock
+acquisition or physical camera calibration. Colour-coded
+IEEE profiles remain alternatives, not silently replaced
 by spatial S2-PSK.
 
 ## OS and hardware boundary

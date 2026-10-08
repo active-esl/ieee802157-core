@@ -3,17 +3,22 @@
 ## Architecture and selection
 
 Use the portable C99 core with thin independent LED/timer and camera adapters.
-Start with one proved RGB channel and calibrated UFSOOK as the simplest
-single-source experiment. At30fps the176-bit envelope takes about12seconds
-including delimiters: suitable for slow diagnostic snapshots, not prompt fault
-alerts. Repeat envelopes; keep immediate human-visible faults independent.
+For the initial board, use its existing LED package only; no auxiliary emitter.
+The current local prototype is [custom slow-colour signalling](COLOUR-PROFILE.md),
+not IEEE CSK or UFSOOK. Four calibrated colours carry dibits at125ms per symbol;
+one envelope takes13.75seconds and eight take110seconds. Its finite offline
+phase search needs the configured period but no optical epoch. Live acquisition,
+arbitrary-rate clock recovery and physical camera calibration remain unproved.
+Repeat envelopes; keep immediate human-visible faults independent.
+UFSOOK remains an IEEE-derived research option, not the selected fitted-driver
+integration: software waveform proof does not establish achievable LED timing.
 S2-PSK takes36seconds at the selected5bps and needs two disjoint sources; RGB
 dies do not establish that fit. C-OOK could shorten transmission but currently
 needs a large rolling-shutter source image and known optical epoch. Its fixture
 assigns one fragment to each camera frame; this is calibrated testing, NOT proof
 of an asynchronous continuously transmitting board/camera link.
 
-Keep all three as selectable development profiles, not a negotiated production
+Keep the IEEE-derived and custom profiles as development options, not a negotiated production
 stack. The custom22-byte application envelope is described in WIRE-FORMAT.md;
 IEEE-derived modulation is described in PROFILES.md. None is claimed conformant.
 Boot, heartbeat, build/board labels, fault codes and test outcomes fit this
@@ -46,8 +51,8 @@ or misrepresented as independent interoperability proof here.
 
 IEEE802.15.7-2018 supplies useful camera modulation candidates. Full MAC/FEC,
 blind acquisition and independent transmitter/receiver interoperability remain
-outside the tested profiles. CSK/colour camera modes require a separate colour
-calibration implementation. Simple low-rate Manchester OOK or an RFC1662-derived
+outside the tested profiles. The custom colour classifier does not implement
+IEEE CSK; real camera calibration remains unproved. Simple low-rate Manchester OOK or an RFC1662-derived
 envelope are fallback experiments if webcam timing defeats these candidates;
 neither would become IEEE-conformant by borrowing a checksum. QR markers help
 static board/ROI association but do not report changing firmware status.
@@ -66,7 +71,10 @@ Prefer a faithful autonomous waveform engine over high-frequency I2C writes.
 Abort late schedules, request off, and report failure to emit; never stretch
 symbols silently. Preserve critical task priority and measure bus occupancy.
 
-The core specifies logical binary levels and50% carrier duty, not LED current.
+Carrier profiles specify logical binary levels and50% carrier duty, not LED current.
+Slow-colour segments instead hold one channel on continuously during each symbol,
+with two dark guard symbols per envelope:98.18% aggregate package-on time. Account
+for this high duty; slower switching is not evidence of safe average current.
 Safe current is the minimum of fitted LED, LP5811, resistor/rail/thermal limits
 with engineering margin, verified by bring-up. Account for driver peak current,
 PWM, simultaneous colours and average duty; no numeric current ceiling is
@@ -90,9 +98,9 @@ Proposed next hardware experiment, only after signed coverage and bring-up:
 1. Establish as-built mapping, safe current/duty, actual LED edge timing and
    camera formats/exposure/row timing. Refuse a profile if measured capabilities
    exceed configured interval/jitter limits. No address sweep/flash loop.
-2. One reserved board, one camera, one colour, fixed geometry; at most3 finite
+2. One reserved board, one camera, one LED package, fixed geometry; at most3 finite
    capture scenarios, each at most120seconds, no audio or unrelated scene.
-   For UFSOOK clean capture, require at least8 consecutive expected envelopes
+   For the selected slow-colour clean capture, require at least8 consecutive expected envelopes
    within120seconds, zero wrong identities/CRC-valid altered payloads, and
    every transmitted sequence accounted for as accepted or explicitly rejected.
 3. In each finite impairment scenario, inject a known frame gap/obstruction,

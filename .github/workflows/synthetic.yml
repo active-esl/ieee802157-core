@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   video:
-    if: github.repository == 'active-esl/ieee802157-core'
+    if: github.repository == 'active-esl/light-comms-core'
     runs-on: [self-hosted, Linux, X64, aesl, esl-proxmox]
     container: ubuntu:24.04
     defaults:
@@ -25,6 +25,8 @@ jobs:
             script: tests/synthetic_spatial_video.py
           - profile: cook
             script: tests/synthetic_rolling_video.py
+          - profile: slow-colour
+            script: tests/synthetic_colour_video.py
     env:
       PYTHONDONTWRITEBYTECODE: '1'
       PYTHONOPTIMIZE: '0'

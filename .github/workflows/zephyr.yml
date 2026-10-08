@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   zephyr:
-    if: github.repository == 'active-esl/ieee802157-core'
+    if: github.repository == 'active-esl/light-comms-core'
     runs-on: [self-hosted, Linux, X64, aesl, esl-proxmox]
     container: ubuntu:24.04
     defaults:
@@ -48,3 +48,4 @@ jobs:
           set -o pipefail
           timeout 10s build-zephyr-native/zephyr/zephyr.exe -stop_at=0.1 | tee build-zephyr-native/smoke.log
           grep -F 'OCC_ZEPHYR_PASS' build-zephyr-native/smoke.log
+          grep -F 'OCC_ZEPHYR_COLOUR_PASS symbols=110 virtual_ns=13750000000' build-zephyr-native/smoke.log

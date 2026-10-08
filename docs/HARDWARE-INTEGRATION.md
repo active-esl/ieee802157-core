@@ -15,6 +15,16 @@ delimiter needs416.667us half-periods;120/105Hz payload needs4.167/4.762ms.
 Thus the existing API at its configured rate cannot emit the selected profile.
 Even400kHz gives a1.575ms lower bound, insufficient for the delimiter.
 
+That conclusion applies to UFSOOK, not the current initial-board selection.
+Alex selected using the existing LED package without an auxiliary emitter; the
+local [slow-colour experiment](COLOUR-PROFILE.md) uses125ms held-colour symbols.
+At eight full API updates per second, the630-clock lower bound consumes5.04%
+of a100kHz bus before overhead and pressure traffic. This is a feasibility
+estimate, not measured occupancy or a guarantee that pressure deadlines hold.
+Preserve package blanking/readbacks/fault checks and measure their optical
+transition gap, latency/jitter and bus interference before physical integration.
+No bus-speed increase, safeguard removal or timer-ISR I2C calls are authorised.
+
 TI SNVSCC4C sections7.3.3/7.3.4/Table7-3 document12/24kHz brightness PWM
 and autonomous animation timing with a90ms minimum nonzero sloper/pause.
 Those controls do not directly supply the selected105/120/1200Hz waveforms.
@@ -25,6 +35,10 @@ readback safeguards to obtain a favorable benchmark.
 A real adapter needs reviewed high-resolution timing, independently measured
 capabilities, source-current/duty/thermal limits, critical-task/bus isolation and
 physical shutdown evidence. Reject profiles that cannot be faithfully emitted.
+Slow-colour output holds one channel active for108/110 symbols per envelope;
+nominal configuration values do not prove safe peak or average current at this
+98.18% aggregate duty. The measured shutdown requirement also applies to errors
+during a held symbol; requesting off is not proof that the hardware is off.
 Co-located RGBW dies are not automatically two spatially resolvable S2-PSK
 sources. C-OOK needs enough rolling-shutter source rows and calibrated timing.
 

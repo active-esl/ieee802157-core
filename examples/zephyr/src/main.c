@@ -5,6 +5,7 @@
 #include "occ/player.h"
 #include "occ/packet.h"
 #include "occ/receiver.h"
+#include "occ/colour.h"
 static occ_segment segments[OCC_PACKET_BITS+4U];
 static uint8_t bytes[OCC_PACKET_BYTES],bits[OCC_PACKET_BITS];
 static occ_wave wave={segments,0U,OCC_PACKET_BITS+4U};
@@ -50,6 +51,28 @@ int main(void)
     }
     if(rc!=OCC_PACKET_READY || received.board!=source.board) {
         printk("OCC_ZEPHYR_DECODE_FAIL\n"); return 1;
+    }
+    {
+        const occ_colour_profile colour={125000000U,{1U,2U,4U,8U}};
+        occ_colour_receiver colour_rx;
+        stamp=0U;
+        if(occ_colour_encode(&colour,bytes,&wave)!=OCC_OK ||
+           occ_colour_receiver_init(&colour_rx,colour.symbol_ns,10000000U)!=OCC_OK)
+            return 1;
+        for(i=0U;i<wave.count;++i) {
+            unsigned c;
+            int symbol=OCC_COLOUR_DARK;
+            for(c=0U;c<4U;++c)
+                if(wave.segments[i].active_mask==colour.channels[c]) symbol=(int)c;
+            rc=occ_colour_receiver_push(&colour_rx,stamp,symbol,&received);
+            stamp+=colour.symbol_ns;
+        }
+        if(rc!=OCC_PACKET_READY || received.board!=source.board ||
+           received.session!=source.session || received.sequence!=source.sequence) {
+            printk("OCC_ZEPHYR_COLOUR_FAIL\n"); return 1;
+        }
+        printk("OCC_ZEPHYR_COLOUR_PASS symbols=%u virtual_ns=%llu\n",
+               (unsigned)wave.count,(unsigned long long)stamp);
     }
     /* The virtual capabilities above are NOT a claim about Zephyr's tick timer.
      * k_uptime_get provides only the sample's epoch, not carrier-edge scheduling.
